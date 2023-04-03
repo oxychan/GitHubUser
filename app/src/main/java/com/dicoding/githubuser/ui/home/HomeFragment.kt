@@ -38,7 +38,10 @@ class HomeFragment : Fragment() {
 
         binding.svUser.setOnQueryTextListener(object :
             androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            @SuppressLint("NotifyDataSetChanged")
             override fun onQueryTextSubmit(query: String?): Boolean {
+                (binding.rvUser.adapter as GithubUserAdapter).clearData()
+                (binding.rvUser.adapter as GithubUserAdapter).notifyDataSetChanged()
                 query?.let { searchUser(it) }
                 return true
             }
@@ -54,7 +57,9 @@ class HomeFragment : Fragment() {
         binding.rvUser.adapter = GithubUserAdapter(ArrayList())
 
         viewModel.usersDefault.observe(viewLifecycleOwner) { result ->
-            result?.let { handleUsersResult(it) }
+            result?.let {
+                handleUsersResult(it)
+            }
         }
 
         return root
@@ -73,8 +78,11 @@ class HomeFragment : Fragment() {
 
     private fun handleUsersResult(result: UserResult<List<ItemsItem>>) {
         when (result) {
-            is UserResult.Loading -> showLoading(result.isLoading)
-            is UserResult.Success -> setUserData(result.data)
+            is UserResult.Loading -> showLoading(true)
+            is UserResult.Success -> {
+                showLoading(false)
+                setUserData (result.data)
+            }
             is UserResult.Error -> showError(result.error)
         }
     }

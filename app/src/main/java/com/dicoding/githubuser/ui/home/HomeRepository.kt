@@ -16,14 +16,11 @@ import retrofit2.Response
 class HomeRepository private constructor(
     private val apiService: ApiService
 ) {
-    private val result = MediatorLiveData<UserResult<List<ItemsItem>>>()
-
     fun getUsers(username: String): LiveData<UserResult<List<ItemsItem>>> = liveData {
-        emit(UserResult.Loading(true))
+        emit(UserResult.Loading)
         try {
             val response = apiService.getUsers(username)
             val users = response.items
-            emit(UserResult.Loading(false))
             emit(UserResult.Success(users))
         } catch (e: Exception) {
             emit(UserResult.Error(e.message.toString()))
