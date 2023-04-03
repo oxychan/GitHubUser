@@ -62,6 +62,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         val item = menu?.findItem(R.id.action_button_darkmode)
+        item?.setIcon(R.drawable.ic_light_mode)
+
         if (isChecked) {
             item?.setIcon(R.drawable.ic_dark_mode)
         } else {
@@ -78,7 +80,6 @@ class MainActivity : AppCompatActivity() {
 
         return true
     }
-
 
     companion object {
         private var isChecked: Boolean = false

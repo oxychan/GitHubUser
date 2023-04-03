@@ -2,11 +2,13 @@ package com.dicoding.githubuser.ui.home
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.dicoding.githubuser.GithubUserAdapter
@@ -27,8 +29,12 @@ class HomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val homeViewModel =
-            ViewModelProvider(this).get(HomeViewModel::class.java)
+        val factory: HomeViewModelFactory = HomeViewModelFactory.getInstance(requireActivity())
+        val homeViewModel: HomeViewModel by viewModels {
+            factory
+        }
+//        val homeViewModel =
+//            ViewModelProvider(this).get(HomeViewModel::class.java)
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -37,27 +43,85 @@ class HomeFragment : Fragment() {
         val layoutManager = GridLayoutManager(root.context, 2)
         binding.rvUser.layoutManager = layoutManager
 
-        homeViewModel.listUsers.observe(viewLifecycleOwner) { listUsers ->
-            setUserData(listUsers)
-        }
+//        homeViewModel.getUsers("").observe(viewLifecycleOwner) { result ->
+//            Log.d("Prik", "observed")
+//            if (result != null) {
+//                when (result) {
+//                    is UserResult.Loading -> {
+//                        showLoading(true)
+//                    }
+//                    is UserResult.Success -> {
+//                        showLoading(false)
+//                        val usersData = result.data
+//                        setUserData(usersData)
+//                    }
+//                    is UserResult.Error -> {
+//                        showLoading(false)
+//                        Toast.makeText(root.context, result.error, Toast.LENGTH_LONG).show()
+//                    }
+//                }
+//            }
+//        }
 
-        homeViewModel.isLoading.observe(viewLifecycleOwner) {
-            showLoading(it)
-        }
+//        homeViewModel.getUsers("oxychan").observe(viewLifecycleOwner) { result ->
+//            Log.d("Prik", "observed")
+//            if (result != null) {
+//                when (result) {
+//                    is UserResult.Loading -> {
+//                        showLoading(true)
+//                    }
+//                    is UserResult.Success -> {
+//                        showLoading(false)
+//                        val usersData = result.data
+//                        setUserData(usersData)
+//                    }
+//                    is UserResult.Error -> {
+//                        showLoading(false)
+//                        Toast.makeText(root.context, result.error, Toast.LENGTH_LONG).show()
+//                    }
+//                }
+//            }
+//        }
 
-        homeViewModel.errorMessage.observe(viewLifecycleOwner) {
-            it.getContentIfNotHandled()?.let {
-                Toast.makeText(root.context, it, Toast.LENGTH_LONG).show()
-            }
-        }
+//        homeViewModel.listUsers.observe(viewLifecycleOwner) { listUsers ->
+//            setUserData(listUsers)
+//        }
+//
+//        homeViewModel.isLoading.observe(viewLifecycleOwner) {
+//            showLoading(it)
+//        }
+//
+//        homeViewModel.errorMessage.observe(viewLifecycleOwner) {
+//            it.getContentIfNotHandled()?.let {
+//                Toast.makeText(root.context, it, Toast.LENGTH_LONG).show()
+//            }
+//        }
 
         searchView.setOnQueryTextListener(object :
             androidx.appcompat.widget.SearchView.OnQueryTextListener {
             @SuppressLint("NotifyDataSetChanged")
             override fun onQueryTextSubmit(query: String?): Boolean {
-                (binding.rvUser.adapter as GithubUserAdapter).clearData()
-                (binding.rvUser.adapter as GithubUserAdapter).notifyDataSetChanged()
-                homeViewModel.getUsers(query!!)
+
+                homeViewModel.getUsers(query!!).observe(viewLifecycleOwner) { result ->
+                    Log.d("Prik", "observed")
+                    if (result != null) {
+                        when (result) {
+                            is UserResult.Loading -> {
+                                showLoading(true)
+                            }
+                            is UserResult.Success -> {
+                                showLoading(false)
+                                val usersData = result.data
+                                setUserData(usersData)
+                            }
+                            is UserResult.Error -> {
+                                showLoading(false)
+                                Toast.makeText(root.context, result.error, Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                }
+                Log.d("Prik", "searchview")
                 return true
             }
 

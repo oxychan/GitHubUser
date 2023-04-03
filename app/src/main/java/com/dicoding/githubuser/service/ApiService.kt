@@ -8,9 +8,9 @@ import retrofit2.http.*
 
 interface ApiService {
     @GET("search/users")
-    fun getUsers(
+    suspend fun getUsers(
         @Query("q") username: String
-    ): Call<GitHubResponse>
+    ): GitHubResponse
 
     @GET("users/{username}")
     @Headers("Authorization: token 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")

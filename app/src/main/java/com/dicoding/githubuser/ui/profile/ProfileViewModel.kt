@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.dicoding.githubuser.response.FollowingsFollowersResponseItem
 import com.dicoding.githubuser.response.ItemsItem
 import com.dicoding.githubuser.response.UserResponse
 import com.dicoding.githubuser.service.ApiConfig
