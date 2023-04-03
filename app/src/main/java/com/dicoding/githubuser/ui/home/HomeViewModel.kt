@@ -12,6 +12,11 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class HomeViewModel(private val homeRepository: HomeRepository): ViewModel() {
-    fun getUsers(username: String) = homeRepository.getUsers(username)
+    var usersDefault: LiveData<UserResult<List<ItemsItem>>> = getUsers("dina")
+    fun getUsers(username: String): LiveData<UserResult<List<ItemsItem>>> {
+        usersDefault = homeRepository.getUsers(username)
+
+        return usersDefault
+    }
 
 }

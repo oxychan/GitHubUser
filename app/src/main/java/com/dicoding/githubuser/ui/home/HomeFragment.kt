@@ -24,104 +24,22 @@ class HomeFragment : Fragment() {
 
     private val binding get() = _binding!!
 
+    private val viewModel: HomeViewModel by viewModels {
+        HomeViewModelFactory.getInstance(requireActivity())
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val factory: HomeViewModelFactory = HomeViewModelFactory.getInstance(requireActivity())
-        val homeViewModel: HomeViewModel by viewModels {
-            factory
-        }
-//        val homeViewModel =
-//            ViewModelProvider(this).get(HomeViewModel::class.java)
-
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val searchView = binding.svUser
-        val layoutManager = GridLayoutManager(root.context, 2)
-        binding.rvUser.layoutManager = layoutManager
-
-//        homeViewModel.getUsers("").observe(viewLifecycleOwner) { result ->
-//            Log.d("Prik", "observed")
-//            if (result != null) {
-//                when (result) {
-//                    is UserResult.Loading -> {
-//                        showLoading(true)
-//                    }
-//                    is UserResult.Success -> {
-//                        showLoading(false)
-//                        val usersData = result.data
-//                        setUserData(usersData)
-//                    }
-//                    is UserResult.Error -> {
-//                        showLoading(false)
-//                        Toast.makeText(root.context, result.error, Toast.LENGTH_LONG).show()
-//                    }
-//                }
-//            }
-//        }
-
-//        homeViewModel.getUsers("oxychan").observe(viewLifecycleOwner) { result ->
-//            Log.d("Prik", "observed")
-//            if (result != null) {
-//                when (result) {
-//                    is UserResult.Loading -> {
-//                        showLoading(true)
-//                    }
-//                    is UserResult.Success -> {
-//                        showLoading(false)
-//                        val usersData = result.data
-//                        setUserData(usersData)
-//                    }
-//                    is UserResult.Error -> {
-//                        showLoading(false)
-//                        Toast.makeText(root.context, result.error, Toast.LENGTH_LONG).show()
-//                    }
-//                }
-//            }
-//        }
-
-//        homeViewModel.listUsers.observe(viewLifecycleOwner) { listUsers ->
-//            setUserData(listUsers)
-//        }
-//
-//        homeViewModel.isLoading.observe(viewLifecycleOwner) {
-//            showLoading(it)
-//        }
-//
-//        homeViewModel.errorMessage.observe(viewLifecycleOwner) {
-//            it.getContentIfNotHandled()?.let {
-//                Toast.makeText(root.context, it, Toast.LENGTH_LONG).show()
-//            }
-//        }
-
-        searchView.setOnQueryTextListener(object :
+        binding.svUser.setOnQueryTextListener(object :
             androidx.appcompat.widget.SearchView.OnQueryTextListener {
-            @SuppressLint("NotifyDataSetChanged")
             override fun onQueryTextSubmit(query: String?): Boolean {
-
-                homeViewModel.getUsers(query!!).observe(viewLifecycleOwner) { result ->
-                    Log.d("Prik", "observed")
-                    if (result != null) {
-                        when (result) {
-                            is UserResult.Loading -> {
-                                showLoading(true)
-                            }
-                            is UserResult.Success -> {
-                                showLoading(false)
-                                val usersData = result.data
-                                setUserData(usersData)
-                            }
-                            is UserResult.Error -> {
-                                showLoading(false)
-                                Toast.makeText(root.context, result.error, Toast.LENGTH_LONG).show()
-                            }
-                        }
-                    }
-                }
-                Log.d("Prik", "searchview")
+                query?.let { searchUser(it) }
                 return true
             }
 
@@ -131,7 +49,34 @@ class HomeFragment : Fragment() {
 
         })
 
+        val layoutManager = GridLayoutManager(root.context, 2)
+        binding.rvUser.layoutManager = layoutManager
+        binding.rvUser.adapter = GithubUserAdapter(ArrayList())
+
+        viewModel.usersDefault.observe(viewLifecycleOwner) { result ->
+            result?.let { handleUsersResult(it) }
+        }
+
         return root
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
+
+    private fun searchUser(username: String) {
+        viewModel.getUsers(username).observe(viewLifecycleOwner) { result ->
+            result?.let { handleUsersResult(it) }
+        }
+    }
+
+    private fun handleUsersResult(result: UserResult<List<ItemsItem>>) {
+        when (result) {
+            is UserResult.Loading -> showLoading(result.isLoading)
+            is UserResult.Success -> setUserData(result.data)
+            is UserResult.Error -> showError(result.error)
+        }
     }
 
     override fun onDestroyView() {
@@ -164,6 +109,11 @@ class HomeFragment : Fragment() {
                 transaction.commit()
             }
         })
+    }
+
+    private fun showError(error: String) {
+        showLoading(false)
+        Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
     }
 
     private fun showLoading(isLoading: Boolean) {
