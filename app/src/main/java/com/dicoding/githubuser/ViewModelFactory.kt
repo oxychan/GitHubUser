@@ -3,7 +3,8 @@ package com.dicoding.githubuser
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
-class ViewModelFactory(private val pref: SettingPreference) : ViewModelProvider.NewInstanceFactory() {
+class ViewModelFactory(private val pref: SettingPreference) :
+    ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MainViewModel::class.java)) {

@@ -12,4 +12,5 @@
     <string name="count_followings">%1$d Followings</string>
     <string name="favourite_label">Favourite</string>
     <string name="bookmark">bookmark</string>
+    <string name="favourite_button">favourite button</string>
 </resources>

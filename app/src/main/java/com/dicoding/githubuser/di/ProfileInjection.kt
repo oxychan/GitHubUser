@@ -9,7 +9,8 @@ object ProfileInjection {
     fun providerRepository(context: Context): ProfileRepository {
         val apiService = ApiConfig.getApiService()
         val database = UserDatabase.getInstance(context)
+        val dao = database.userDao()
 
-        return ProfileRepository.getInstance(apiService, database)
+        return ProfileRepository.getInstance(apiService, database, dao)
     }
 }

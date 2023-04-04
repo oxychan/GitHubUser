@@ -2,26 +2,17 @@ package com.dicoding.githubuser.ui.components
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
-import com.bumptech.glide.Glide
-import com.dicoding.githubuser.R
 import com.dicoding.githubuser.data.entity.UserEntity
 import com.dicoding.githubuser.databinding.FragmentFollowingFollowerBinding
-import com.dicoding.githubuser.model.User
-import com.dicoding.githubuser.response.ItemsItem
-import com.dicoding.githubuser.response.UserResponse
 import com.dicoding.githubuser.ui.profile.ProfileFragment
 import com.dicoding.githubuser.ui.profile.ProfileResult
 import com.dicoding.githubuser.ui.profile.ProfileViewModel
-import com.dicoding.githubuser.ui.profile.ProfileViewModelFactory
 
 class FollowingFollowerFragment : Fragment() {
     private var _binding: FragmentFollowingFollowerBinding? = null
@@ -58,16 +49,12 @@ class FollowingFollowerFragment : Fragment() {
             result.let {
                 when (it) {
                     is ProfileResult.User -> {
-                        Log.d("Ndut", it.data.toString())
                         if (index == 0) {
                             viewModel.getFollowing(it.data.login)
                                 .observe(viewLifecycleOwner) { res ->
-                                    Log.d("Ndut", "ini yah")
-                                    Log.d("Ndut", res.toString())
                                     res?.let { result ->
                                         if (res is ProfileResult.Following) {
                                             val data = (result as ProfileResult.Following).data
-                                            Log.d("Ndut", data.toString())
                                             getFollowings(data)
                                         }
                                     }
@@ -98,7 +85,13 @@ class FollowingFollowerFragment : Fragment() {
     private fun getFollowers(listFollowers: List<UserEntity>) {
         val followers = ArrayList<UserEntity>()
         for (item in listFollowers) {
-            followers.add(UserEntity(userProfile = item.userProfile, username = item.username, isBookmarked = item.isBookmarked))
+            followers.add(
+                UserEntity(
+                    userProfile = item.userProfile,
+                    username = item.username,
+                    isBookmarked = item.isBookmarked
+                )
+            )
         }
 
         val adapter = (parentFragment as ProfileFragment).selfUpdate(followers)
@@ -109,7 +102,13 @@ class FollowingFollowerFragment : Fragment() {
     private fun getFollowings(listFollowings: List<UserEntity>) {
         val followings = ArrayList<UserEntity>()
         for (item in listFollowings) {
-            followings.add(UserEntity(userProfile = item.userProfile, username = item.username, isBookmarked = item.isBookmarked))
+            followings.add(
+                UserEntity(
+                    userProfile = item.userProfile,
+                    username = item.username,
+                    isBookmarked = item.isBookmarked
+                )
+            )
         }
 
         val adapter = (parentFragment as ProfileFragment).selfUpdate(followings)

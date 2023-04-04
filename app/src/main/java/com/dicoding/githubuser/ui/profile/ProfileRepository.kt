@@ -1,24 +1,18 @@
 package com.dicoding.githubuser.ui.profile
 
-import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import com.dicoding.githubuser.data.entity.UserEntity
+import com.dicoding.githubuser.data.room.UserDao
 import com.dicoding.githubuser.data.room.UserDatabase
-import com.dicoding.githubuser.response.ItemsItem
 import com.dicoding.githubuser.response.UserResponse
-import com.dicoding.githubuser.service.ApiConfig
 import com.dicoding.githubuser.service.ApiService
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class ProfileRepository private constructor(
     private val apiService: ApiService,
-    private val database: UserDatabase
+    private val database: UserDatabase,
+    private val dao: UserDao
 ) {
-
     fun getUser(username: String): LiveData<ProfileResult<UserResponse>> = liveData {
         emit(ProfileResult.Loading)
         try {
@@ -35,7 +29,13 @@ class ProfileRepository private constructor(
         emit(ProfileResult.LoadingFollower)
         try {
             val followersApi = apiService.getFollowers(username)
-            val followers = followersApi.map { UserEntity(username = it.login, userProfile = it.avatarUrl, false) }
+            val followers = followersApi.map {
+                UserEntity(
+                    username = it.login,
+                    userProfile = it.avatarUrl,
+                    false
+                )
+            }
             emit(ProfileResult.Follower(followers))
         } catch (e: Exception) {
             emit(ProfileResult.Error(e.message.toString()))
@@ -46,12 +46,29 @@ class ProfileRepository private constructor(
         emit(ProfileResult.LoadingFollowing)
         try {
             val followingApi = apiService.getFollowings(username)
-            val following = followingApi.map { UserEntity(username = it.login, userProfile = it.avatarUrl, false) }
+            val following = followingApi.map {
+                UserEntity(
+                    username = it.login,
+                    userProfile = it.avatarUrl,
+                    false
+                )
+            }
             emit(ProfileResult.Following(following))
-        } catch (e: Exception){
+        } catch (e: Exception) {
             emit(ProfileResult.Error(e.message.toString()))
         }
     }
+
+    suspend fun setBookmarkedUser(user: UserEntity) {
+        val existingUser: UserEntity = dao.getById(user.username)
+        if (existingUser == null) {
+            dao.insertUser(user)
+        } else {
+            dao.deleteUser(existingUser)
+        }
+    }
+
+    fun isExists(username: String) = dao.getById(username)
 
     companion object {
         @Volatile
@@ -59,10 +76,11 @@ class ProfileRepository private constructor(
 
         fun getInstance(
             apiService: ApiService,
-            database: UserDatabase
+            database: UserDatabase,
+            dao: UserDao
         ): ProfileRepository =
             instance ?: synchronized(this) {
-                instance ?: ProfileRepository(apiService, database)
+                instance ?: ProfileRepository(apiService, database, dao)
             }.also { instance = it }
     }
 }

@@ -5,7 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.dicoding.githubuser.di.Injection
 
-class HomeViewModelFactory private constructor(private val homeRepository: HomeRepository) : ViewModelProvider.NewInstanceFactory() {
+class HomeViewModelFactory private constructor(private val homeRepository: HomeRepository) :
+    ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {

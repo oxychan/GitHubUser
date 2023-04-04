@@ -26,7 +26,7 @@ class SettingPreference private constructor(private val dataStore: DataStore<Pre
 
     companion object {
         @Volatile
-        private  var INSTANCE: SettingPreference? = null
+        private var INSTANCE: SettingPreference? = null
 
         fun getInstance(dataStroe: DataStore<Preferences>): SettingPreference {
             return INSTANCE ?: synchronized(this) {

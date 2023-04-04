@@ -9,21 +9,18 @@ interface UserDao {
     @Query("SELECT * FROM users ORDER BY username DESC")
     fun getUsers(): LiveData<List<UserEntity>>
 
-    @Query("SELECT * FROM users where bookmarked = 1")
-    fun getBookmarkedUsers(): LiveData<List<UserEntity>>
+    @Query("SELECT * FROM users")
+    fun getBookmarkedUsers(): LiveData<MutableList<UserEntity>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertUser(user: UserEntity)
 
     @Query("SELECT * FROM users where username = :username")
-    suspend fun getById(username: String): UserEntity
+    fun getById(username: String): UserEntity
 
     @Update
     suspend fun updateUser(user: UserEntity)
 
-    @Query("DELETE FROM users WHERE bookmarked = 0")
-    suspend fun deleteAll()
-
-    @Query("SELECT EXISTS(SELECT * FROM users WHERE username = :username AND bookmarked = 1)")
-    suspend fun isNewsBookmarked(username: String): Boolean
+    @Delete
+    suspend fun deleteUser(user: UserEntity)
 }

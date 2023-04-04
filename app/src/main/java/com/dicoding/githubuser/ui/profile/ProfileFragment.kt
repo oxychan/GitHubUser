@@ -11,7 +11,7 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.dicoding.githubuser.GithubUserAdapter
 import com.dicoding.githubuser.MainActivity
@@ -19,17 +19,13 @@ import com.dicoding.githubuser.R
 import com.dicoding.githubuser.SectionsPagerAdapter
 import com.dicoding.githubuser.data.entity.UserEntity
 import com.dicoding.githubuser.databinding.FragmentProfileBinding
-import com.dicoding.githubuser.model.User
 import com.dicoding.githubuser.model.UserDetail
-import com.dicoding.githubuser.response.GitHubResponse
-import com.dicoding.githubuser.response.ItemsItem
 import com.dicoding.githubuser.response.UserResponse
-import com.dicoding.githubuser.ui.home.HomeViewModel
-import com.dicoding.githubuser.ui.home.HomeViewModelFactory
-import com.dicoding.githubuser.ui.home.UserResult
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayoutMediator
 import de.hdodenhof.circleimageview.CircleImageView
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 class ProfileFragment : Fragment() {
@@ -42,7 +38,7 @@ class ProfileFragment : Fragment() {
         ProfileViewModelFactory.getInstance(requireActivity())
     }
 
-    fun getProfileViewModel() : ProfileViewModel {
+    fun getProfileViewModel(): ProfileViewModel {
         return viewModel
     }
 
@@ -54,6 +50,7 @@ class ProfileFragment : Fragment() {
     private lateinit var tvUsername: TextView
     private lateinit var tvFollowers: TextView
     private lateinit var tvFollowings: TextView
+    private lateinit var fabFavourite: FloatingActionButton
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -73,6 +70,7 @@ class ProfileFragment : Fragment() {
         tvUsername = binding.tvUsername
         tvFollowers = binding.tvFollower
         tvFollowings = binding.tvFollowing
+        fabFavourite = binding.fabFavourite
 
         val sectionsPagerAdapter = SectionsPagerAdapter(this)
         val viewPager = binding.viewPager
@@ -173,6 +171,39 @@ class ProfileFragment : Fragment() {
                     tvUsername.text = currentUser.username
                     tvFollowers.text = getString(R.string.count_followers, currentUser.followers)
                     tvFollowings.text = getString(R.string.count_followings, currentUser.followings)
+
+
+                    lifecycleScope.launch {
+                        val isBookmarked = viewModel.isExists(currentUser.username)
+                        Log.d("Ndut", isBookmarked.toString())
+                        if (isBookmarked) {
+                            fabFavourite.setImageResource(R.drawable.ic_bookmark_white)
+                        } else {
+                            fabFavourite.setImageResource(R.drawable.ic_bookmark_border)
+                        }
+
+                        fabFavourite.setOnClickListener {
+                            if (isBookmarked) {
+                                fabFavourite.setImageResource(R.drawable.ic_bookmark_border)
+                                Toast.makeText(
+                                    it.context,
+                                    "removed from favourite",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                fabFavourite.setImageResource(R.drawable.ic_bookmark_white)
+                                Toast.makeText(it.context, "added to favourite", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                            viewModel.saveUser(
+                                UserEntity(
+                                    username = currentUser.username,
+                                    userProfile = currentUser.userProfile,
+                                    false
+                                )
+                            )
+                        }
+                    }
                     showLoading(false)
                 }
                 is ProfileResult.Loading -> showLoading(true)
@@ -222,7 +253,6 @@ class ProfileFragment : Fragment() {
         } else {
             binding.pbProfile.visibility = View.GONE
         }
-
     }
 
     private fun showError(error: String) {
