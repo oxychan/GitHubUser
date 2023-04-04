@@ -1,13 +1,16 @@
 package com.dicoding.githubuser.ui.profile
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.dicoding.githubuser.GithubUserAdapter
@@ -17,7 +20,12 @@ import com.dicoding.githubuser.SectionsPagerAdapter
 import com.dicoding.githubuser.databinding.FragmentProfileBinding
 import com.dicoding.githubuser.model.User
 import com.dicoding.githubuser.model.UserDetail
+import com.dicoding.githubuser.response.GitHubResponse
+import com.dicoding.githubuser.response.ItemsItem
 import com.dicoding.githubuser.response.UserResponse
+import com.dicoding.githubuser.ui.home.HomeViewModel
+import com.dicoding.githubuser.ui.home.HomeViewModelFactory
+import com.dicoding.githubuser.ui.home.UserResult
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import de.hdodenhof.circleimageview.CircleImageView
@@ -28,6 +36,14 @@ class ProfileFragment : Fragment() {
     private var _binding: FragmentProfileBinding? = null
 
     private val binding get() = _binding!!
+
+    private val viewModel: ProfileViewModel by viewModels {
+        ProfileViewModelFactory.getInstance(requireActivity())
+    }
+
+    fun getProfileViewModel() : ProfileViewModel {
+        return viewModel
+    }
 
     private lateinit var appBarProfile: AppBarLayout
     private lateinit var ivTbProfile: CircleImageView
@@ -43,8 +59,6 @@ class ProfileFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val profileViewModel =
-            ViewModelProvider(this).get(ProfileViewModel::class.java)
 
         (activity as AppCompatActivity).supportActionBar?.hide()
 
@@ -63,28 +77,6 @@ class ProfileFragment : Fragment() {
         val viewPager = binding.viewPager
         val tabs = binding.tlFollow
 
-        profileViewModel.userDetail.observe(viewLifecycleOwner) { response ->
-            val currentUser = setUserDetailData(response)
-            Glide.with(root.context)
-                .load(currentUser.userProfile)
-                .into(ivTbProfile)
-
-            Glide.with(root.context)
-                .load(currentUser.userProfile)
-                .into(ivProfile)
-
-            tvTbName.text = currentUser.name
-            tvName.text = currentUser.name
-            tvUsername.text = currentUser.username
-            tvFollowers.text = getString(R.string.count_followers, currentUser.followers)
-            tvFollowings.text = getString(R.string.count_followings, currentUser.followings)
-
-        }
-
-        profileViewModel.isLoading.observe(viewLifecycleOwner) {
-            showLoading(it)
-        }
-
         viewPager.adapter = sectionsPagerAdapter
         TabLayoutMediator(tabs, viewPager) { tab, position ->
             tab.text = resources.getString(TAB_TITLES[position])
@@ -95,8 +87,6 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val profileViewModel =
-            ViewModelProvider(this).get(ProfileViewModel::class.java)
 
         ivTbProfile.visibility = View.GONE
         tvTbName.visibility = View.GONE
@@ -105,16 +95,22 @@ class ProfileFragment : Fragment() {
         if (arguments != null) {
             if (arguments?.getBoolean(IS_FROM_HOME) as Boolean) {
                 val username = arguments?.getString("username")
-                profileViewModel.getUser(username.toString())
+                viewModel.getUser(username.toString()).observe(viewLifecycleOwner) { response ->
+                    handleUsersResult(response)
+                }
             }
 
             if (arguments?.getBoolean(IS_FROM_FOLLOW) as Boolean) {
                 val username = arguments?.getString("username")
-                profileViewModel.getUser(username.toString())
+                viewModel.getUser(username.toString()).observe(viewLifecycleOwner) { response ->
+                    handleUsersResult(response)
+                }
             }
 
         } else {
-            profileViewModel.getUser("oxychan")
+            viewModel.getUser("oxychan").observe(viewLifecycleOwner) { response ->
+                handleUsersResult(response)
+            }
         }
 
         appBarProfile.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
@@ -153,6 +149,34 @@ class ProfileFragment : Fragment() {
             if (arguments?.getBoolean(IS_FROM_HOME) as Boolean) {
                 (activity as AppCompatActivity).supportActionBar?.hide()
                 (activity as MainActivity).binding.navView.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun handleUsersResult(result: ProfileResult<UserResponse>) {
+        result.let {
+            when (it) {
+                is ProfileResult.User -> {
+                    val currentUser = setUserDetailData(it.data)
+                    Log.d("Prik", currentUser.toString())
+                    Glide.with(requireActivity())
+                        .load(currentUser.userProfile)
+                        .into(ivTbProfile)
+
+                    Glide.with(requireActivity())
+                        .load(currentUser.userProfile)
+                        .into(ivProfile)
+
+                    tvTbName.text = currentUser.name
+                    tvName.text = currentUser.name
+                    tvUsername.text = currentUser.username
+                    tvFollowers.text = getString(R.string.count_followers, currentUser.followers)
+                    tvFollowings.text = getString(R.string.count_followings, currentUser.followings)
+                    showLoading(false)
+                }
+                is ProfileResult.Loading -> showLoading(true)
+                is ProfileResult.Error -> showError(it.message)
+                else -> {}
             }
         }
     }
@@ -198,6 +222,11 @@ class ProfileFragment : Fragment() {
             binding.pbProfile.visibility = View.GONE
         }
 
+    }
+
+    private fun showError(error: String) {
+        showLoading(false)
+        Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
     }
 
     companion object {

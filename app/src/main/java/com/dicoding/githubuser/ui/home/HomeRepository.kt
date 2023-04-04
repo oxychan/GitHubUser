@@ -1,17 +1,9 @@
 package com.dicoding.githubuser.ui.home
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
-import com.dicoding.githubuser.response.GitHubResponse
 import com.dicoding.githubuser.response.ItemsItem
-import com.dicoding.githubuser.service.ApiConfig
 import com.dicoding.githubuser.service.ApiService
-import com.dicoding.githubuser.service.Event
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class HomeRepository private constructor(
     private val apiService: ApiService
@@ -21,6 +13,9 @@ class HomeRepository private constructor(
         try {
             val response = apiService.getUsers(username)
             val users = response.items
+            if (users.isEmpty()) {
+                emit(UserResult.Error("User not found!"));
+            }
             emit(UserResult.Success(users))
         } catch (e: Exception) {
             emit(UserResult.Error(e.message.toString()))
