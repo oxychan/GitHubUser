@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
+import com.dicoding.githubuser.data.entity.UserEntity
+import com.dicoding.githubuser.data.room.UserDatabase
 import com.dicoding.githubuser.response.ItemsItem
 import com.dicoding.githubuser.response.UserResponse
 import com.dicoding.githubuser.service.ApiConfig
@@ -13,7 +15,8 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class ProfileRepository private constructor(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val database: UserDatabase
 ) {
 
     fun getUser(username: String): LiveData<ProfileResult<UserResponse>> = liveData {
@@ -28,20 +31,22 @@ class ProfileRepository private constructor(
         }
     }
 
-    fun getFollowers(username: String): LiveData<ProfileResult<List<ItemsItem>>> = liveData {
+    fun getFollowers(username: String): LiveData<ProfileResult<List<UserEntity>>> = liveData {
         emit(ProfileResult.LoadingFollower)
         try {
-            val followers = apiService.getFollowers(username)
+            val followersApi = apiService.getFollowers(username)
+            val followers = followersApi.map { UserEntity(username = it.login, userProfile = it.avatarUrl, false) }
             emit(ProfileResult.Follower(followers))
         } catch (e: Exception) {
             emit(ProfileResult.Error(e.message.toString()))
         }
     }
 
-    fun getFollowings(username: String): LiveData<ProfileResult<List<ItemsItem>>> = liveData {
+    fun getFollowings(username: String): LiveData<ProfileResult<List<UserEntity>>> = liveData {
         emit(ProfileResult.LoadingFollowing)
         try {
-            val following = apiService.getFollowings(username)
+            val followingApi = apiService.getFollowings(username)
+            val following = followingApi.map { UserEntity(username = it.login, userProfile = it.avatarUrl, false) }
             emit(ProfileResult.Following(following))
         } catch (e: Exception){
             emit(ProfileResult.Error(e.message.toString()))
@@ -53,10 +58,11 @@ class ProfileRepository private constructor(
         private var instance: ProfileRepository? = null
 
         fun getInstance(
-            apiService: ApiService
+            apiService: ApiService,
+            database: UserDatabase
         ): ProfileRepository =
             instance ?: synchronized(this) {
-                instance ?: ProfileRepository(apiService)
+                instance ?: ProfileRepository(apiService, database)
             }.also { instance = it }
     }
 }

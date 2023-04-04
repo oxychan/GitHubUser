@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dicoding.githubuser.data.entity.UserEntity
 import com.dicoding.githubuser.response.FollowingsFollowersResponseItem
 import com.dicoding.githubuser.response.ItemsItem
 import com.dicoding.githubuser.response.UserResponse
@@ -22,9 +23,9 @@ class ProfileViewModel(private val profileRepository: ProfileRepository) : ViewM
         return currentUser
     }
 
-    fun getFollower(username: String): LiveData<ProfileResult<List<ItemsItem>>> = profileRepository.getFollowers(username)
+    fun getFollower(username: String): LiveData<ProfileResult<List<UserEntity>>> = profileRepository.getFollowers(username)
 
 
-    fun getFollowing(username: String): LiveData<ProfileResult<List<ItemsItem>>> = profileRepository.getFollowings(username)
+    fun getFollowing(username: String): LiveData<ProfileResult<List<UserEntity>>> = profileRepository.getFollowings(username)
 
 }

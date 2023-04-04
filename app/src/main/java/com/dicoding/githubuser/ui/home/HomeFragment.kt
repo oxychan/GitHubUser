@@ -2,20 +2,18 @@ package com.dicoding.githubuser.ui.home
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.dicoding.githubuser.GithubUserAdapter
 import com.dicoding.githubuser.R
+import com.dicoding.githubuser.data.entity.UserEntity
 import com.dicoding.githubuser.databinding.FragmentHomeBinding
 import com.dicoding.githubuser.model.User
-import com.dicoding.githubuser.response.ItemsItem
 import com.dicoding.githubuser.ui.profile.ProfileFragment
 
 class HomeFragment : Fragment() {
@@ -76,7 +74,7 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun handleUsersResult(result: UserResult<List<ItemsItem>>) {
+    private fun handleUsersResult(result: UserResult<List<UserEntity>>) {
         when (result) {
             is UserResult.Loading -> showLoading(true)
             is UserResult.Success -> {
@@ -92,16 +90,16 @@ class HomeFragment : Fragment() {
         _binding = null
     }
 
-    private fun setUserData(listItem: List<ItemsItem>) {
-        val listUser = ArrayList<User>()
+    private fun setUserData(listItem: List<UserEntity>) {
+        val listUser = ArrayList<UserEntity>()
         for (item in listItem) {
-            listUser.add(User(username = item.login, userProfile = item.avatarUrl))
+            listUser.add(UserEntity(username = item.username, userProfile = item.userProfile, isBookmarked = item.isBookmarked))
         }
         val adapter = GithubUserAdapter(listUser)
         binding.rvUser.adapter = adapter
 
         adapter.setOnItemCallback(object : GithubUserAdapter.OnItemClickCallback {
-            override fun onItemClicked(data: User) {
+            override fun onItemClicked(data: UserEntity) {
                 val fragment = ProfileFragment()
                 val transaction = parentFragmentManager.beginTransaction()
                 val dataBundle = Bundle()

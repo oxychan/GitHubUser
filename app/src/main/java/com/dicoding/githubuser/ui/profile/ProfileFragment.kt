@@ -17,6 +17,7 @@ import com.dicoding.githubuser.GithubUserAdapter
 import com.dicoding.githubuser.MainActivity
 import com.dicoding.githubuser.R
 import com.dicoding.githubuser.SectionsPagerAdapter
+import com.dicoding.githubuser.data.entity.UserEntity
 import com.dicoding.githubuser.databinding.FragmentProfileBinding
 import com.dicoding.githubuser.model.User
 import com.dicoding.githubuser.model.UserDetail
@@ -191,11 +192,11 @@ class ProfileFragment : Fragment() {
         )
     }
 
-    fun selfUpdate(listUser: ArrayList<User>): GithubUserAdapter {
+    fun selfUpdate(listUser: ArrayList<UserEntity>): GithubUserAdapter {
         val adapter = GithubUserAdapter(listUser)
 
         adapter.setOnItemCallback(object : GithubUserAdapter.OnItemClickCallback {
-            override fun onItemClicked(data: User) {
+            override fun onItemClicked(data: UserEntity) {
                 val fragment = ProfileFragment()
                 val transaction = parentFragmentManager.beginTransaction()
                 val dataBundle = Bundle()

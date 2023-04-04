@@ -10,4 +10,6 @@
     <string name="username_user">usename_user</string>
     <string name="count_followers">%1$d Followers</string>
     <string name="count_followings">%1$d Followings</string>
+    <string name="favourite_label">Favourite</string>
+    <string name="bookmark">bookmark</string>
 </resources>
