@@ -1,5 +1,6 @@
 package com.dicoding.githubuser
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
@@ -13,9 +14,18 @@ class GithubUserAdapter(private val listUser: MutableList<UserEntity>) :
     RecyclerView.Adapter<GithubUserAdapter.ViewHolder>() {
 
     private lateinit var onItemClickCallback: OnItemClickCallback
+    private lateinit var onFavouriteClickCallback: OnFavouriteClickCallback
+
+    interface OnFavouriteClickCallback {
+        fun onFavItemClicked(data: UserEntity)
+    }
 
     interface OnItemClickCallback {
         fun onItemClicked(data: UserEntity)
+    }
+
+    fun setOnFavouriteItemCallback(onFavouriteClickCallback: OnFavouriteClickCallback) {
+        this.onFavouriteClickCallback = onFavouriteClickCallback
     }
 
     fun setOnItemCallback(onItemClickCallback: OnItemClickCallback) {
@@ -58,12 +68,19 @@ class GithubUserAdapter(private val listUser: MutableList<UserEntity>) :
         ivBookmark.setImageDrawable(ContextCompat.getDrawable(ivBookmark.context, bookmark))
 
         ivBookmark.setOnClickListener {
-            Toast.makeText(ivBookmark.context, "Iyah", Toast.LENGTH_LONG).show()
+            onFavouriteClickCallback.onFavItemClicked(user)
         }
     }
 
     fun clearData() {
         listUser.clear()
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun updateList(list: List<UserEntity>) {
+        listUser.clear()
+        listUser.addAll(list)
+        notifyDataSetChanged()
     }
 
 }

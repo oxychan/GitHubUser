@@ -13,7 +13,10 @@ interface UserDao {
     fun getBookmarkedUsers(): LiveData<List<UserEntity>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertUser(user: List<UserEntity>)
+    suspend fun insertUser(user: UserEntity)
+
+    @Query("SELECT * FROM users where username = :username")
+    suspend fun getById(username: String): UserEntity
 
     @Update
     suspend fun updateUser(user: UserEntity)

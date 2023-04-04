@@ -2,6 +2,7 @@ package com.dicoding.githubuser.ui.home
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -79,7 +80,7 @@ class HomeFragment : Fragment() {
             is UserResult.Loading -> showLoading(true)
             is UserResult.Success -> {
                 showLoading(false)
-                setUserData (result.data)
+                setUserData(result.data)
             }
             is UserResult.Error -> showError(result.error)
         }
@@ -93,10 +94,34 @@ class HomeFragment : Fragment() {
     private fun setUserData(listItem: List<UserEntity>) {
         val listUser = ArrayList<UserEntity>()
         for (item in listItem) {
-            listUser.add(UserEntity(username = item.username, userProfile = item.userProfile, isBookmarked = item.isBookmarked))
+            listUser.add(
+                UserEntity(
+                    username = item.username,
+                    userProfile = item.userProfile,
+                    isBookmarked = item.isBookmarked
+                )
+            )
         }
         val adapter = GithubUserAdapter(listUser)
         binding.rvUser.adapter = adapter
+
+        adapter.setOnFavouriteItemCallback(object : GithubUserAdapter.OnFavouriteClickCallback {
+            override fun onFavItemClicked(data: UserEntity) {
+                viewModel.getBookmarkedUsers().observe(viewLifecycleOwner) { bookmarkedUsers ->
+                    if (data.isBookmarked) {
+                        viewModel.deleteUser(data)
+                    } else {
+                        viewModel.saveUser(data)
+                    }
+
+                    val updatedUsers = listUser.map { user ->
+                        val bookmarked = bookmarkedUsers.any { it.username == user.username }
+                        user.copy(isBookmarked = bookmarked)
+                    }
+                    adapter.updateList(updatedUsers)
+                }
+            }
+        })
 
         adapter.setOnItemCallback(object : GithubUserAdapter.OnItemClickCallback {
             override fun onItemClicked(data: UserEntity) {
