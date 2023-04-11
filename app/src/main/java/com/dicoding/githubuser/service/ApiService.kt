@@ -12,19 +12,19 @@ interface ApiService {
     ): GitHubResponse
 
     @GET("users/{username}")
-    @Headers("Authorization: token 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")
+    @Headers("Authorization: token your_token")
     suspend fun getUser(
         @Path("username") username: String
     ): UserResponse
 
     @GET("users/{username}/followers")
-    @Headers("Authorization: token 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")
+    @Headers("Authorization: token your_token")
     suspend fun getFollowers(
         @Path("username") username: String
     ): List<ItemsItem>
 
     @GET("users/{username}/following")
-    @Headers("Authorization: token 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")
+    @Headers("Authorization: token your_token")
     suspend fun getFollowings(
         @Path("username") username: String
     ): List<ItemsItem>
